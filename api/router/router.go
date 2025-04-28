@@ -9,7 +9,9 @@ import (
 	"gorm.io/gorm"
 
 	"fitapp-backend/api/resource/health"
+	"fitapp-backend/api/resource/product"
 	"fitapp-backend/api/resource/user"
+	userday "fitapp-backend/api/resource/user_day"
 )
 
 func New(db *gorm.DB) *chi.Mux {
@@ -17,19 +19,23 @@ func New(db *gorm.DB) *chi.Mux {
 
 	r.Get("/livez", health.Read)
 	r.Get("/swagger/doc.yaml", func(w http.ResponseWriter, r *http.Request) {
-		// Użyj http.ServeFile, aby wysłać zawartość pliku .swagger/doc.yaml
+		// Ustaw nagłówki HTTP, aby zapobiec cache'owaniu przez przeglądarkę
+		// Te nagłówki dają silne instrukcje, aby nie cache'ować
+		w.Header().Set("Cache-Control", "no-cache, no-store, must-revalidate") // HTTP 1.1.
+		w.Header().Set("Pragma", "no-cache")                                   // HTTP 1.0.
+		w.Header().Set("Expires", "0")                                         // Proxies
+
+		// Użyj http.ServeFile, aby wysłać zawartość pliku
+		// Upewnij się, że ścieżka "docs/swagger.yaml" jest poprawna względem katalogu roboczego aplikacji
 		http.ServeFile(w, r, "docs/swagger.yaml")
 	})
 
-	// 2. Dodaj handler Swagger UI.
-	// Ten handler serwuje pliki HTML/JS/CSS dla Swagger UI.
-	// Parametr httpSwagger.URL wskazuje, gdzie UI ma pobrać definicję API (czyli nasz doc.yaml)
-	// Ścieżka musi kończyć się na "/*" dla poprawnego routingu w chi
+	// 2. Handler Swagger UI (bez zmian)
 	r.Get("/swagger/*", httpSwagger.Handler(
-		// Wskazujesz pełny URL (schemat + host + port + ścieżka) do pliku doc.yaml,
-		// który serwujesz w punkcie 1.
+		// Upewnij się, że URL jest poprawny (schemat, host, port, ścieżka)
 		httpSwagger.URL("http://localhost:8080/swagger/doc.yaml"),
 	))
+
 	r.Route("/v1", func(r chi.Router) {
 		userAPI := user.New(db)
 		r.Get("/users", userAPI.List)
@@ -37,7 +43,19 @@ func New(db *gorm.DB) *chi.Mux {
 		r.Get("/users/{id}", userAPI.Read)
 		r.Put("/users/{id}", userAPI.Update)
 		r.Delete("/users/{id}", userAPI.Delete)
-	})
+		userdayAPI := userday.New(db)
+		r.Get("/user-days", userdayAPI.List)
+		r.Post("/user-days", userdayAPI.Create)
+		r.Get("/user-days/{id}", userdayAPI.Read)
+		r.Put("/user-days/{id}", userdayAPI.Update)
+		r.Delete("/user-days/{id}", userdayAPI.Delete)
+		productAPI := product.New(db, userdayAPI)
+		r.Get("/products", productAPI.List)
+		r.Post("/products", productAPI.Create)
+		r.Get("/products/{id}", productAPI.Read)
+		r.Put("/products/{id}", productAPI.Update)
+		r.Delete("/products/{id}", productAPI.Delete)
 
+	})
 	return r
 }

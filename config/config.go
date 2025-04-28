@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/joeshaw/envdecode"
+	"github.com/joho/godotenv"
 )
 
 type Conf struct {
@@ -29,12 +30,18 @@ type ConfDB struct {
 	Debug    bool   `env:"DB_DEBUG,required"`
 }
 
+func init() {
+	// Załaduj zmienne środowiskowe z pliku .env
+	if err := godotenv.Load(); err != nil {
+		log.Println("Nie znaleziono pliku .env lub wystąpił błąd podczas ładowania")
+	}
+}
+
 func New() *Conf {
 	var c Conf
 	if err := envdecode.StrictDecode(&c); err != nil {
 		log.Fatalf("Failed to decode: %s", err)
 	}
-
 	return &c
 }
 
@@ -43,6 +50,11 @@ func NewDB() *ConfDB {
 	if err := envdecode.StrictDecode(&c); err != nil {
 		log.Fatalf("Failed to decode: %s", err)
 	}
-
 	return &c
+}
+
+// LoadEnvFile pozwala na załadowanie zmiennych środowiskowych
+// z określonego pliku .env
+func LoadEnvFile(filepath string) error {
+	return godotenv.Load(filepath)
 }
