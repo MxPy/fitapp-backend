@@ -37,6 +37,10 @@ func handleErr(w http.ResponseWriter, status int, message string, err error) {
 	http.Error(w, message, status)
 }
 
+func enableCors(w *http.ResponseWriter) {
+	(*w).Header().Set("Access-Control-Allow-Origin", "*")
+}
+
 // --- TODO: Implement proper validation ---
 
 // List godoc
@@ -50,6 +54,7 @@ func handleErr(w http.ResponseWriter, status int, message string, err error) {
 //	@failure		500	{object}	string "Internal Server Error"
 //	@router			/products [get]
 func (a *API) List(w http.ResponseWriter, r *http.Request) {
+	enableCors(&w)
 	products, err := a.repository.List()
 	if err != nil {
 		handleErr(w, http.StatusInternalServerError, "Failed to retrieve products", err)
@@ -84,9 +89,15 @@ func (a *API) List(w http.ResponseWriter, r *http.Request) {
 //	@failure		500	{object}	string "Internal Server Error"
 //	@router			/products [post]
 func (a *API) Create(w http.ResponseWriter, r *http.Request) {
+	enableCors(&w)
 	form := &Form{}
 	if err := json.NewDecoder(r.Body).Decode(form); err != nil {
 		handleErr(w, http.StatusBadRequest, "Invalid request body", err)
+		return
+	}
+
+	if form.Grams == 0 {
+		http.Error(w, "Grams must be greater than zero", http.StatusBadRequest)
 		return
 	}
 
@@ -95,7 +106,15 @@ func (a *API) Create(w http.ResponseWriter, r *http.Request) {
 
 	newProduct := form.ToModel()
 	newProduct.ID = uuid.New()
-	a.user_day_api.Create_from_product(form.UserID, form.Kcal, form.Proteins, form.Carbs, form.Fats)
+
+	// // Obliczenie wartości w przeliczeniu na 100g z użyciem float64
+	// kcal := int(float64(form.Kcal) * 100 / float64(form.Grams))
+	// proteins := int(float64(form.Proteins) * 100 / float64(form.Grams))
+	// carbs := int(float64(form.Carbs) * 100 / float64(form.Grams))
+	// fats := int(float64(form.Fats) * 100 / float64(form.Grams))
+
+	// // Wstawienie do user_day
+	// a.user_day_api.Create_from_product(form.UserID, kcal, proteins, carbs, fats)
 
 	_, err := a.repository.Create(newProduct)
 	if err != nil {
@@ -121,6 +140,7 @@ func (a *API) Create(w http.ResponseWriter, r *http.Request) {
 //	@failure		500	{object}	string "Internal Server Error"
 //	@router			/products/{id} [get]
 func (a *API) Read(w http.ResponseWriter, r *http.Request) {
+	enableCors(&w)
 	paramValue := chi.URLParam(r, "id")
 	if paramValue == "" {
 		handleErr(w, http.StatusBadRequest, "Missing required path parameter: id", nil)
@@ -166,6 +186,7 @@ func (a *API) Read(w http.ResponseWriter, r *http.Request) {
 //	@failure		500	{object}	string "Internal Server Error"
 //	@router			/products/{id} [put]
 func (a *API) Update(w http.ResponseWriter, r *http.Request) {
+	enableCors(&w)
 	paramValue := chi.URLParam(r, "id")
 	if paramValue == "" {
 		handleErr(w, http.StatusBadRequest, "Missing required path parameter: id", nil)
@@ -223,6 +244,7 @@ func (a *API) Update(w http.ResponseWriter, r *http.Request) {
 //	@failure		500	{object}	string "Internal Server Error"
 //	@router			/products/{id} [delete]
 func (a *API) Delete(w http.ResponseWriter, r *http.Request) {
+	enableCors(&w)
 	paramValue := chi.URLParam(r, "id")
 	if paramValue == "" {
 		handleErr(w, http.StatusBadRequest, "Missing required path parameter: id", nil)

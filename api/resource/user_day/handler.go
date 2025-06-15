@@ -37,6 +37,10 @@ func handleErr(w http.ResponseWriter, status int, message string, err error) {
 	json.NewEncoder(w).Encode(map[string]string{"error": message})
 }
 
+func enableCors(w *http.ResponseWriter) {
+	(*w).Header().Set("Access-Control-Allow-Origin", "*")
+}
+
 // --- TODO: Implement proper validation ---
 
 // List godoc
@@ -50,6 +54,7 @@ func handleErr(w http.ResponseWriter, status int, message string, err error) {
 //	@failure		500	{object}	map[string]string "Internal Server Error"
 //	@router			/user-days [get]
 func (a *API) List(w http.ResponseWriter, r *http.Request) {
+	enableCors(&w)
 	userDays, err := a.repository.List()
 	if err != nil {
 		handleErr(w, http.StatusInternalServerError, "Failed to retrieve user days", err)
@@ -82,6 +87,7 @@ func (a *API) List(w http.ResponseWriter, r *http.Request) {
 //	@failure		500	{object}	map[string]string "Internal Server Error"
 //	@router			/user-days [post]
 func (a *API) Create(w http.ResponseWriter, r *http.Request) {
+	enableCors(&w)
 	form := &Form{}
 	if err := json.NewDecoder(r.Body).Decode(form); err != nil {
 		handleErr(w, http.StatusBadRequest, "Invalid request body JSON", err)
@@ -195,6 +201,7 @@ func (a *API) Create_from_product(uid string, kcal int, proteins int, carbs int,
 //	@failure		500	{object}	map[string]string "Internal Server Error"
 //	@router			/user-days/{id} [get]
 func (a *API) Read(w http.ResponseWriter, r *http.Request) {
+	enableCors(&w)
 	paramValue := chi.URLParam(r, "id")
 	id, err := uuid.Parse(paramValue)
 	if err != nil {
@@ -234,6 +241,7 @@ func (a *API) Read(w http.ResponseWriter, r *http.Request) {
 //	@failure		500	{object}	map[string]string "Internal Server Error"
 //	@router			/user-days/search [get] // Use a different path or rely on query params
 func (a *API) FindByUserAndDate(w http.ResponseWriter, r *http.Request) {
+	enableCors(&w)
 	userIdParam := r.URL.Query().Get("userId")
 	dateParam := r.URL.Query().Get("date")
 
@@ -287,6 +295,7 @@ func (a *API) FindByUserAndDate(w http.ResponseWriter, r *http.Request) {
 //	@failure		500	{object}	map[string]string "Internal Server Error"
 //	@router			/user-days/{id} [put]
 func (a *API) Update(w http.ResponseWriter, r *http.Request) {
+	enableCors(&w)
 	paramValue := chi.URLParam(r, "id")
 	id, err := uuid.Parse(paramValue)
 	if err != nil {
@@ -343,6 +352,7 @@ func (a *API) Update(w http.ResponseWriter, r *http.Request) {
 //	@failure		500	{object}	map[string]string "Internal Server Error"
 //	@router			/user-days/{id} [delete]
 func (a *API) Delete(w http.ResponseWriter, r *http.Request) {
+	enableCors(&w)
 	paramValue := chi.URLParam(r, "id")
 	id, err := uuid.Parse(paramValue)
 	if err != nil {

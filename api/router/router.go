@@ -47,6 +47,7 @@ func New(db *gorm.DB) *chi.Mux {
 		r.Get("/user-days", userdayAPI.List)
 		r.Post("/user-days", userdayAPI.Create)
 		r.Get("/user-days/{id}", userdayAPI.Read)
+		r.Get("/user-days/search", userdayAPI.FindByUserAndDate)
 		r.Put("/user-days/{id}", userdayAPI.Update)
 		r.Delete("/user-days/{id}", userdayAPI.Delete)
 		productAPI := product.New(db, userdayAPI)

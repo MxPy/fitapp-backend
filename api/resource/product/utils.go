@@ -25,9 +25,9 @@ func (ps Products) ToDto() []*DTO {
 func (f *Form) ToModel() *Product {
 	return &Product{
 		ProductName: f.ProductName,
-		Kcal:        f.Kcal,
-		Proteins:    f.Proteins,
-		Carbs:       f.Carbs,
-		Fats:        f.Fats,
+		Kcal:        int(float64(f.Kcal) * 100 / float64(f.Grams)),
+		Proteins:    int(float64(f.Proteins) * 100 / float64(f.Grams)),
+		Carbs:       int(float64(f.Carbs) * 100 / float64(f.Grams)),
+		Fats:        int(float64(f.Fats) * 100 / float64(f.Grams)),
 	}
 }

@@ -37,6 +37,7 @@ type DTO struct {
 type Form struct {
 	UserID      string `json:"user_id"`
 	ProductName string `json:"product_name"`
+	Grams       int    `json:"grams"`
 	Kcal        int    `json:"kcal"`
 	Proteins    int    `json:"proteins"`
 	Carbs       int    `json:"carbs"`

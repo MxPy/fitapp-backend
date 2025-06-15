@@ -28,6 +28,10 @@ func New(db *gorm.DB) *API {
 	}
 }
 
+func enableCors(w *http.ResponseWriter) {
+	(*w).Header().Set("Access-Control-Allow-Origin", "*")
+}
+
 // --- Simple Error Handling Placeholder ---
 // Replace with your application's standard error response mechanism
 func handleErr(w http.ResponseWriter, status int, message string, details interface{}) {
@@ -64,6 +68,7 @@ func formatValidationErrors(err error) map[string]string {
 //	@failure		500	{object}	map[string]string "Internal Server Error"
 //	@router			/users [get]
 func (a *API) List(w http.ResponseWriter, r *http.Request) {
+	enableCors(&w)
 	users, err := a.repository.List()
 	if err != nil {
 		handleErr(w, http.StatusInternalServerError, "Failed to retrieve users", err.Error())
@@ -95,6 +100,7 @@ func (a *API) List(w http.ResponseWriter, r *http.Request) {
 //	@failure		500	{object}	map[string]string "Internal Server Error"
 //	@router			/users [post]
 func (a *API) Create(w http.ResponseWriter, r *http.Request) {
+	enableCors(&w)
 	form := &Form{}
 	if err := json.NewDecoder(r.Body).Decode(form); err != nil {
 		handleErr(w, http.StatusBadRequest, "Invalid request body JSON", err.Error())
@@ -152,6 +158,7 @@ func (a *API) Create(w http.ResponseWriter, r *http.Request) {
 //	@failure		500	{object}	map[string]string "Internal Server Error"
 //	@router			/users/{id} [get]
 func (a *API) Read(w http.ResponseWriter, r *http.Request) {
+	enableCors(&w)
 	paramValue := chi.URLParam(r, "id")
 	id, err := uuid.Parse(paramValue)
 	if err != nil {
@@ -191,6 +198,7 @@ func (a *API) Read(w http.ResponseWriter, r *http.Request) {
 //	@failure		500	{object}	map[string]string "Internal Server Error"
 //	@router			/users/{id} [put]
 func (a *API) Update(w http.ResponseWriter, r *http.Request) {
+	enableCors(&w)
 	paramValue := chi.URLParam(r, "id")
 	id, err := uuid.Parse(paramValue)
 	if err != nil {
@@ -278,6 +286,7 @@ func (a *API) Update(w http.ResponseWriter, r *http.Request) {
 //	@failure		500	{object}	map[string]string "Internal Server Error"
 //	@router			/users/{id} [delete]
 func (a *API) Delete(w http.ResponseWriter, r *http.Request) {
+	enableCors(&w)
 	paramValue := chi.URLParam(r, "id")
 	id, err := uuid.Parse(paramValue)
 	if err != nil {
